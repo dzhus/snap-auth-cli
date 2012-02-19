@@ -105,6 +105,7 @@ main =
               (ReqArg (\j opts → opts{optJson = j}) "JSONFILE")
               "JsonFile backend storage file"
             ]
+        header = "Usage: snap-auth-cli [OPTIONS]"
     in
       do
         -- Parse command-line args into Options opts
