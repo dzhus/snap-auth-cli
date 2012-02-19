@@ -1,0 +1,26 @@
+name:                snap-auth-cli
+version:             0.1.0.0
+synopsis:            Command-line tool to manage Snap AuthManager database
+-- description:         
+homepage:            https://github.com/dzhus/snap-auth-cli
+license:             BSD3
+license-file:        LICENSE
+author:              Dmitry Dzhus
+maintainer:          dima@dzhus.org
+category:            Web
+build-type:          Simple
+cabal-version:       >=1.8
+tested-with:         GHC == 7.4.1
+
+executable snap-jsonauth-cli
+  hs-source-dirs: src
+  main-is: Main.hs
+
+  ghc-options: -Wall
+
+  build-depends:
+    base                >= 4 && < 5,
+    clientsession       == 0.7.*,
+    snap                >= 0.7.1 && < 0.8,
+    text                == 0.11.*,
+    utf8-string         == 0.3.*
