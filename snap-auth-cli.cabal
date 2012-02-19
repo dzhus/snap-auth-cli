@@ -12,7 +12,7 @@ build-type:          Simple
 cabal-version:       >=1.8
 tested-with:         GHC == 7.4.1
 
-executable snap-jsonauth-cli
+executable snap-auth-cli
   hs-source-dirs: src
   main-is: Main.hs
 
