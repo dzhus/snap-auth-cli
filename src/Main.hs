@@ -2,10 +2,7 @@
 
 {-|
 
-Command-line tool to manage 'Snap.Snaplet.Auth.AuthManager' database.
-Currently supports only 'Snap.Snaplet.Auth.Backends.JsonFile' backend.
-
-Run without arguments to get usage info.
+Main module.
 
 -}
 
