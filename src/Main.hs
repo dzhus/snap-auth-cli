@@ -1,5 +1,3 @@
-{-# LANGUAGE UnicodeSyntax #-}
-
 {-|
 
 Main module.
@@ -51,10 +49,10 @@ defaultOptions = Options
 
 
 -- | Save new user in auth backend given user login and password
-mgrSaveUser :: IAuthBackend r ⇒
+mgrSaveUser :: IAuthBackend r =>
                r
-               → (String, String)
-               → IO AuthUser
+               -> (String, String)
+               -> IO AuthUser
 mgrSaveUser amgr (l, p) =
     let
         login = T.pack l
@@ -62,64 +60,65 @@ mgrSaveUser amgr (l, p) =
         user' = defAuthUser{userLogin = login}
     in
       do
-        user ← setPassword user' pass
+        user <- setPassword user' pass
         save amgr user
 
 
 -- | Try to delete user in auth backend given user login
-mgrDeleteUser :: IAuthBackend r ⇒ r → String → IO ()
+mgrDeleteUser :: IAuthBackend r => r -> String -> IO ()
 mgrDeleteUser amgr l =
     let
         login = T.pack l
     in
       do
-        user ← lookupByLogin amgr login
+        user <- lookupByLogin amgr login
         case user of
-          Just found → destroy amgr found
-          Nothing → ioError $ userError $
+          Just found -> destroy amgr found
+          Nothing -> ioError $ userError $
                      l ++ ": user not found"
 
 
 main :: IO ()
 main =
     let
-        options :: [OptDescr (Options → Options)]
+        options :: [OptDescr (Options -> Options)]
         options =
             [
               Option ['c'] ["create"]
-              (NoArg $ \opts → opts{optMode = Just Create})
+              (NoArg $ \opts -> opts{optMode = Just Create})
               "Create new user"
             , Option ['d'] ["delete"]
-              (NoArg $ \opts → opts{optMode = Just Delete})
+              (NoArg $ \opts -> opts{optMode = Just Delete})
               "Delete user"
             , Option ['u'] ["user", "name"]
-              (ReqArg (\u opts → opts{optLogin = Just u}) "USER")
+              (ReqArg (\u opts -> opts{optLogin = Just u}) "USER")
               "User login"
             , Option ['p'] ["password"]
-              (ReqArg (\p opts → opts{optPassword = Just p}) "PWD")
+              (ReqArg (\p opts -> opts{optPassword = Just p}) "PWD")
               "User password"
             , Option ['j'] ["json"]
-              (ReqArg (\j opts → opts{optJson = j}) "JSONFILE")
+              (ReqArg (\j opts -> opts{optJson = j}) "JSONFILE")
               "JsonFile backend storage file"
             ]
         header = "Usage: snap-auth-cli [OPTIONS]"
     in
       do
         -- Parse command-line args into Options opts
-        getopts ← getOpt Permute options <$> getArgs
-        opts ← case getopts of
-          (o, _, []) → return $ foldl (flip id) defaultOptions o
-          (_, _, errs) → ioError $ userError $
+        getopts <- getOpt Permute options <$> getArgs
+        opts <- case getopts of
+          ([], _, _) -> ioError $ userError $ usageInfo header options
+          (o, _, []) -> return $ foldl (flip id) defaultOptions o
+          (_, _, errs) -> ioError $ userError $
                           concat errs ++ usageInfo header options
 
         -- Load JSON database using file specified in -j
-        amgr ← mkJsonAuthMgr (optJson opts)
+        amgr <- mkJsonAuthMgr (optJson opts)
                 
         -- Operate depending on mode selected
         case (optMode opts, optLogin opts, optPassword opts) of
-          (Nothing, _, _) → ioError (userError "No operation mode selected")
-          (_, Nothing, _) → ioError $ userError "No user selected"
-          (Just Delete, Just l, _) → mgrDeleteUser amgr l
-          (Just Create, Just l, Just p) → mgrSaveUser amgr (l, p)
+          (Nothing, _, _) -> ioError (userError "No operation mode selected")
+          (_, Nothing, _) -> ioError $ userError "No user selected"
+          (Just Delete, Just l, _) -> mgrDeleteUser amgr l
+          (Just Create, Just l, Just p) -> mgrSaveUser amgr (l, p)
                                            >> return ()
-          (Just Create, _, Nothing) → ioError $ userError "No password set"
+          (Just Create, _, Nothing) -> ioError $ userError "No password set"
