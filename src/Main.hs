@@ -1,3 +1,5 @@
+{-# LANGUAGE Rank2Types #-}
+
 {-|
 
 Main module.
@@ -22,7 +24,7 @@ import Web.ClientSession
 
 
 -- | Possible modes of operation.
-data Mode = Create | Delete
+data Mode = Create | Delete | Show'
           deriving Show
 
 
@@ -49,11 +51,11 @@ defaultOptions = Options
 
 
 -- | Save new user in auth backend given user login and password
-mgrSaveUser :: IAuthBackend r =>
+mgrNewUser :: IAuthBackend r =>
                r
                -> (String, String)
                -> IO AuthUser
-mgrSaveUser amgr (l, p) =
+mgrNewUser amgr (l, p) =
     let
         login = T.pack l
         pass = B.fromString p
@@ -64,16 +66,18 @@ mgrSaveUser amgr (l, p) =
         save amgr user
 
 
--- | Try to delete user in auth backend given user login
-mgrDeleteUser :: IAuthBackend r => r -> String -> IO ()
-mgrDeleteUser amgr l =
+type AuthUserAction = IAuthBackend r => r -> AuthUser -> IO ()
+
+-- | Get user from backend by login and apply 'AuthUserAction' to it.
+mgrOldUser :: IAuthBackend r => r -> String -> AuthUserAction -> IO ()
+mgrOldUser amgr l f =
     let
         login = T.pack l
     in
       do
         user <- lookupByLogin amgr login
         case user of
-          Just found -> destroy amgr found
+          Just found -> f amgr found
           Nothing -> ioError $ userError $
                      l ++ ": user not found"
 
@@ -90,6 +94,9 @@ main =
             , Option ['d'] ["delete"]
               (NoArg $ \opts -> opts{optMode = Just Delete})
               "Delete user"
+            , Option ['w'] ["show"]
+              (NoArg $ \opts -> opts{optMode = Just Show'})
+              "Show user"
             , Option ['u'] ["user", "name"]
               (ReqArg (\u opts -> opts{optLogin = Just u}) "USER")
               "User login"
@@ -118,7 +125,8 @@ main =
         case (optMode opts, optLogin opts, optPassword opts) of
           (Nothing, _, _) -> ioError (userError "No operation mode selected")
           (_, Nothing, _) -> ioError $ userError "No user selected"
-          (Just Delete, Just l, _) -> mgrDeleteUser amgr l
-          (Just Create, Just l, Just p) -> mgrSaveUser amgr (l, p)
+          (Just Show', Just l, _) -> mgrOldUser amgr l (\_ u -> print u)
+          (Just Delete, Just l, _) -> mgrOldUser amgr l destroy
+          (Just Create, Just l, Just p) -> mgrNewUser amgr (l, p)
                                            >> return ()
           (Just Create, _, Nothing) -> ioError $ userError "No password set"
