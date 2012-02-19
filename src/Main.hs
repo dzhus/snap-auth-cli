@@ -1,11 +1,9 @@
 {-|
 
-Command-line tool to manage 'Snap.Snaplet.Auth.AuthManager' database
-which uses 'Snap.Snaplet.Auth.Backends.JsonFile' backend.
+Command-line tool to manage 'Snap.Snaplet.Auth.AuthManager' database.
+Currently supports only 'Snap.Snaplet.Auth.Backends.JsonFile' backend.
 
-User database resides in @users.json@ file in current directory,
-encryption key is stored in @client_session_key.aes@. If database or
-key is not present, they will be generated from scratch.
+Run without arguments to get usage info.
 
 -}
 
@@ -37,6 +35,7 @@ data Options = Options
       optMode :: Maybe Mode
     , optLogin :: Maybe String
     , optPassword :: Maybe String
+    , optJson :: String
     }
     deriving Show
 
@@ -48,6 +47,7 @@ defaultOptions = Options
       optMode = Nothing
     , optLogin = Nothing
     , optPassword = Nothing
+    , optJson = "users.json"
     }
 
 
@@ -99,6 +99,9 @@ main =
             , Option ['p'] ["password"]
               (ReqArg (\p opts -> opts{optPassword = Just p}) "PWD")
               "User password"
+            , Option ['j'] ["json"]
+              (ReqArg (\j opts -> opts{optJson = j}) "JSONFILE")
+              "JsonFile backend storage file"
             ]
     in
       do
@@ -108,9 +111,10 @@ main =
           (o, _, []) -> return $ foldl (flip id) defaultOptions o
           (_, _, errs) -> ioError $ userError $
                           concat errs ++ usageInfo header options
-              where header = "Usage: snap-jsonauth-cli [OPTIONS]"
+              where header = "Usage: snap-auth-cli [OPTIONS]"
 
-        amgr <- mkJsonAuthMgr "users.json"
+        -- Load JSON database using file specified in -j
+        amgr <- mkJsonAuthMgr (optJson opts)
 
         -- Operate depending on mode selected
         case (optMode opts, optLogin opts, optPassword opts) of
