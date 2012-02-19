@@ -12,7 +12,10 @@ where
 
 import Data.Functor
 
+import Data.Aeson.Encode.Pretty
+
 import qualified Data.Text as T (pack)
+import qualified Data.ByteString.Lazy as LB (putStr)
 import qualified Data.ByteString.UTF8 as B (fromString)
 
 import System.Console.GetOpt
@@ -125,8 +128,12 @@ main =
         case (optMode opts, optLogin opts, optPassword opts) of
           (Nothing, _, _) -> ioError (userError "No operation mode selected")
           (_, Nothing, _) -> ioError $ userError "No user selected"
-          (Just Show', Just l, _) -> mgrOldUser amgr l (\_ u -> print u)
+
+          (Just Show', Just l, _) -> mgrOldUser amgr l 
+                                     (\_ u -> LB.putStr $ encodePretty u)
+
           (Just Delete, Just l, _) -> mgrOldUser amgr l destroy
+
           (Just Create, Just l, Just p) -> mgrNewUser amgr (l, p)
                                            >> return ()
           (Just Create, _, Nothing) -> ioError $ userError "No password set"
