@@ -49,8 +49,8 @@ mgrNewUser amgr (l, p) =
 
 -- | Get user from backend by login and apply 'AuthUserAction' to it.
 mgrOldUser :: IAuthBackend r => r
-           -> String 
-           -> AuthUserAction 
+           -> String
+           -> AuthUserAction
            -> IO ()
 mgrOldUser amgr l f =
     let
