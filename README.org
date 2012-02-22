@@ -3,9 +3,12 @@
   create, view and delete users in database. Currently only JsonFile
   backend is supported.
   
-  Passwords for new users are provided in plain text. By default the
-  database resides in current directory in `users.json` file. Note
-  that if database file doesn't exist, it will be created from
+  Passwords for new users are provided in plain text. 
+
+  By default the database resides in current directory in `users.json`
+  file. 
+
+  Note that if database file doesn't exist, it will be created from
   scratch. A different db may be specified using `-j` flag.
 
 
@@ -18,22 +21,33 @@
 
    User roles may be set when creating account:
 
-   : ./snap-auth-cli --create -u TwasBrillig -p SlithyToves1855 -r gyre -r gimble
+   : ./snap-auth-cli --create -u TwasBrillig2 -p SlithyToves1855 -r gyre -r gimble
 
-   Read the user from DB:
+   A user may have arbitary number of key-value pairs attached in meta
+   field (currently all fields are stored in Strings):
+
+   : ./snap-auth-cli --create -u AlexP -p 1234 -k number -v 3214 -k foo -v bar -r admin
+
+   Read the user from DB (`--read` flag may be omitted):
    
-   : ./snap-auth-cli --read -u TwasBrillig
+   : ./snap-auth-cli --read -u AlexP
    : {
-   :     "meta": {},
+   :     "meta": {
+   :         "number": "3214",
+   :         "foo": "bar"
+   :     },
    :     "suspended_at": null,
-   :     "pw": "sha256|12|izRmgu++a+Hw1V48gQtiDw==|FNo/Os+Z+r2QsxXTqRyV61LDPPEibMC9U3Pbp2D/ujU=",
+   :     "roles": [
+   :         "admin"
+   :     ],
+   :     "pw": "sha256|12|VpUGBg2O/NBkDTVTSqqYuA==|TIDuc3ToAPmALXCHBxTA8SjlUBztPS8nH6qiV63a+f4=",
    :     "activated_at": null,
    :     "current_ip": null,
    :     "locked_until": null,
-   :     "updated_at": "2012-02-19T22:15:47.911Z",
+   :     "updated_at": "2012-02-22T09:00:29.377Z",
    :     "login_count": 0,
    :     "current_login_at": null,
-   :     "login": "TwasBrillig",
+   :     "login": "AlexP",
    :     "remember_token": null,
    :     "failed_login_count": 0,
    :     "last_ip": null,
@@ -50,5 +64,6 @@
    in Snap doesn't support the operation yet.
 
 * To do
-** IN PROGRESS More fields
+** DONE More fields
+   CLOSED: [2012-02-22 Срд 12:53]
    Support setting AuthUser's userMeta and other fields.

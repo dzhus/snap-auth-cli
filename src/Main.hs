@@ -15,11 +15,13 @@ where
 import Data.Functor
 
 import Data.Aeson.Encode.Pretty
+import qualified Data.Aeson.Types as A
 
 import qualified Data.Text as T (pack)
 import qualified Data.ByteString as B (ByteString)
 import qualified Data.ByteString.Lazy as LB (putStr)
 import qualified Data.ByteString.UTF8 as BU (fromString)
+import qualified Data.HashMap.Lazy as M
 
 import System.Console.CmdArgs.Implicit
 
@@ -35,15 +37,18 @@ type AuthUserAction = IAuthBackend r => r -> AuthUser -> IO ()
 
 -- | Save new user in auth backend given user login, password and roles
 mgrNewUser :: IAuthBackend r => r
-           -> (String, String, [String])
+           -> (String, String, [String], [(String, String)])
            -> IO AuthUser
-mgrNewUser amgr (l, p, rs) =
+mgrNewUser amgr (l, p, rs, mt) =
     let
         login = T.pack l
         pass = BU.fromString p
         roles = map (Role . BU.fromString) $ rs
+        meta = M.fromList $
+               map (\(k, v) -> (T.pack k, A.String $ T.pack v)) mt
         au' = defAuthUser{ userLogin = login
-                         , userRoles = roles}
+                         , userRoles = roles
+                         , userMeta = meta}
     in
       do
         au <- setPassword au' pass
@@ -83,6 +88,8 @@ data Options = Options
     , password :: Maybe String
     , json :: String
     , role :: [String]
+    , key :: [String]
+    , value :: [String]
     }
     deriving (Show, Data, Typeable)
 
@@ -98,6 +105,10 @@ main =
                  , password = def
                  , role = def &= name "r"
                    &= help "User role. May be specified multiple times"
+                 , key = def &= name "k"
+                   &= help "User meta key. Must be followed by value option"
+                 , value = def &= name "v"
+                   &= help "User meta value."
                  , json = "users.json"
                    &= typFile
                    &= help "Path to JsonFile database"
@@ -112,6 +123,7 @@ main =
         (Read, Just l, _) -> mgrOldUser amgr l
                              (\_ au -> LB.putStr $ encodePretty au)
         (Delete, Just l, _) -> mgrOldUser amgr l destroy
-        (Create, Just l, Just pw) -> mgrNewUser amgr (l, pw, role)
+        (Create, Just l, Just pw) -> mgrNewUser amgr (l, pw, role, meta)
                                      >> return ()
+                                  where meta = zip key value
         (Create, _, Nothing) -> ioError $ userError "No password set"
