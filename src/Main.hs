@@ -42,7 +42,7 @@ mgrNewUser amgr (l, p, rs) =
         login = T.pack l
         pass = BU.fromString p
         roles = map (Role . BU.fromString) $ rs
-        au' = defAuthUser{userLogin = login
+        au' = defAuthUser{ userLogin = login
                          , userRoles = roles}
     in
       do
