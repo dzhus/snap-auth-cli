@@ -17,8 +17,9 @@ import Data.Functor
 import Data.Aeson.Encode.Pretty
 
 import qualified Data.Text as T (pack)
+import qualified Data.ByteString as B (ByteString)
 import qualified Data.ByteString.Lazy as LB (putStr)
-import qualified Data.ByteString.UTF8 as B (fromString)
+import qualified Data.ByteString.UTF8 as BU (fromString)
 
 import System.Console.CmdArgs.Implicit
 
@@ -32,15 +33,17 @@ import Web.ClientSession
 type AuthUserAction = IAuthBackend r => r -> AuthUser -> IO ()
 
 
--- | Save new user in auth backend given user login and password
+-- | Save new user in auth backend given user login, password and roles
 mgrNewUser :: IAuthBackend r => r
-           -> (String, String)
+           -> (String, String, [String])
            -> IO AuthUser
-mgrNewUser amgr (l, p) =
+mgrNewUser amgr (l, p, rs) =
     let
         login = T.pack l
-        pass = B.fromString p
-        au' = defAuthUser{userLogin = login}
+        pass = BU.fromString p
+        roles = map (Role . BU.fromString) $ rs
+        au' = defAuthUser{userLogin = login
+                         , userRoles = roles}
     in
       do
         au <- setPassword au' pass
@@ -79,6 +82,7 @@ data Options = Options
     , user :: Maybe String
     , password :: Maybe String
     , json :: String
+    , role :: [String]
     }
     deriving (Show, Data, Typeable)
 
@@ -92,6 +96,8 @@ main =
                                , Delete &= help "Delete user"]
                  , user = def &= help "User login"
                  , password = def
+                 , role = def &= name "r"
+                   &= help "User role. May be specified multiple times"
                  , json = "users.json"
                    &= typFile
                    &= help "Path to JsonFile database"
@@ -106,6 +112,6 @@ main =
         (Read, Just l, _) -> mgrOldUser amgr l
                              (\_ au -> LB.putStr $ encodePretty au)
         (Delete, Just l, _) -> mgrOldUser amgr l destroy
-        (Create, Just l, Just pw) -> mgrNewUser amgr (l, pw)
+        (Create, Just l, Just pw) -> mgrNewUser amgr (l, pw, role)
                                      >> return ()
         (Create, _, Nothing) -> ioError $ userError "No password set"

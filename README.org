@@ -16,6 +16,10 @@
 
    : ./snap-auth-cli --create -u TwasBrillig -p SlithyToves1855
 
+   User roles may be set when creating account:
+
+   : ./snap-auth-cli --create -u TwasBrillig -p SlithyToves1855 -r gyre -r gimble
+
    Read the user from DB:
    
    : ./snap-auth-cli --read -u TwasBrillig
@@ -46,5 +50,5 @@
    in Snap doesn't support the operation yet.
 
 * To do
-** TODO More fields
-   Support setting AuthUser's userMeta, userRoles and other fields.
+** IN PROGRESS More fields
+   Support setting AuthUser's userMeta and other fields.
