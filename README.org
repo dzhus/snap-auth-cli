@@ -19,16 +19,18 @@
 
    : ./snap-auth-cli --create -u TwasBrillig -p SlithyToves1855
 
-   User roles may be set when creating account:
+   User roles may be set when creating account using arbitary number
+   of `-o` flags:
 
-   : ./snap-auth-cli --create -u TwasBrillig2 -p SlithyToves1855 -r gyre -r gimble
+   : ./snap-auth-cli --create -u TwasBrillig2 -p SlithyToves1855 -o gyre -o gimble
 
    A user may have arbitary number of key-value pairs attached in meta
    field (currently all fields are stored in Strings):
 
-   : ./snap-auth-cli --create -u AlexP -p 1234 -k number -v 3214 -k foo -v bar -r admin
+   : ./snap-auth-cli --create -u AlexP -p 1234 -k number -v 3214 -k foo -v bar -o admin
 
-   Read the user from DB (`--read` flag may be omitted):
+   Read the user from DB (`--read` flag may be omitted since reading
+   is the default mode):
    
    : ./snap-auth-cli --read -u AlexP
    : {
