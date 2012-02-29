@@ -60,6 +60,23 @@
 
    : ./snap-auth-cli -j back.json --create -u MimsyBorogove -p 0utgr@b3d
 
+   Existing users can be modified using the `-m` option. User is
+   selected by login. Any of `-p`, `-o` or `-k/-v` flags may be
+   specified to set new value for user password, roles or meta. If no
+   new value is provided, old field is preserved.
+
+   Set new password for user:
+
+   : ./snap-auth-cli -m -u Mome -p r@th$$
+
+   Set new role:
+
+   : ./snap-auth-cli -m -u Mome -o foobarer
+
+   Replace user meta:
+
+   : ./snap-auth-cli -m -u BG -k tel -v 2-12-85-06
+
    The tool provides interface to delete users, but JsonFile backend
    in Snap doesn't support the operation yet.
 

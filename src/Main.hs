@@ -13,6 +13,7 @@ module Main
 where
 
 import Data.Functor
+import Data.Monoid
 
 import Data.Aeson.Encode.Pretty
 import qualified Data.Aeson.Types as A
@@ -38,6 +39,29 @@ type AuthUserAction = IAuthBackend r => r -> AuthUser -> IO ()
 readAction :: AuthUserAction
 readAction _ au = LB.putStr $ encodePretty au
 
+
+-- | Containers for which null predicate is defined.
+class PossiblyNull a where
+    null :: a
+
+instance PossiblyNull [a] where
+    null = []
+
+instance PossiblyNull (Maybe a) where
+    null = Nothing
+
+instance PossiblyNull (M.HashMap k v) where
+    null = M.empty
+
+-- | Monoid under choosing non-null container.
+newtype NullMonoid a = NullMonoid { getContainer :: a }
+
+instance (Eq a, PossiblyNull a) => Monoid (NullMonoid a) where
+    mempty = NullMonoid Main.null
+    (NullMonoid x) `mappend` (NullMonoid y) = 
+        NullMonoid (if x == Main.null then y else x)
+
+
 -- | Make 'AuthUserAction' which will replace user with the supplied
 -- one. In case new user has 'Nothing' in password, old password will be
 -- used.
@@ -45,12 +69,13 @@ makeUpdateAction :: AuthUser -> AuthUserAction
 makeUpdateAction newUser =
     \amgr oldUser ->
         let
-            newPw = case (userPassword newUser) of
-                      Nothing -> userPassword oldUser
-                      pw@(Just _) -> pw
-        in do
+            pick how = getContainer $ mconcat $
+                       map (NullMonoid . how) [newUser, oldUser]
+        in
           save amgr newUser{ userId = userId oldUser
-                           , userPassword = newPw
+                           , userPassword = pick userPassword
+                           , userRoles = pick userRoles
+                           , userMeta = pick userMeta
                            } 
            >> return ()
 
