@@ -58,7 +58,7 @@ newtype NullMonoid a = NullMonoid { getContainer :: a }
 
 instance (Eq a, PossiblyNull a) => Monoid (NullMonoid a) where
     mempty = NullMonoid Main.null
-    (NullMonoid x) `mappend` (NullMonoid y) = 
+    (NullMonoid x) `mappend` (NullMonoid y) =
         NullMonoid (if x == Main.null then y else x)
 
 
@@ -76,7 +76,7 @@ makeUpdateAction newUser =
                            , userPassword = pick userPassword
                            , userRoles = pick userRoles
                            , userMeta = pick userMeta
-                           } 
+                           }
            >> return ()
 
 
