@@ -83,6 +83,3 @@
    in Snap doesn't support the operation yet.
 
 * To do
-** DONE More fields
-   CLOSED: [2012-02-22 Срд 12:53]
-   Support setting AuthUser's userMeta and other fields.
