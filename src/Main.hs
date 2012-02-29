@@ -35,24 +35,52 @@ import Web.ClientSession
 type AuthUserAction = IAuthBackend r => r -> AuthUser -> IO ()
 
 
--- | Save new user in auth backend given user login, password and roles
-mgrNewUser :: IAuthBackend r => r
-           -> (String, String, [String], [(String, String)])
-           -> IO AuthUser
-mgrNewUser amgr (l, p, rs, mt) =
+readAction :: AuthUserAction
+readAction _ au = LB.putStr $ encodePretty au
+
+-- | Make 'AuthUserAction' which will replace user with the supplied
+-- one. In case new user has 'Nothing' in password, old password will be
+-- used.
+makeUpdateAction :: AuthUser -> AuthUserAction
+makeUpdateAction newUser =
+    \amgr oldUser ->
+        let
+            newPw = case (userPassword newUser) of
+                      Nothing -> userPassword oldUser
+                      pw@(Just _) -> pw
+        in do
+          save amgr newUser{ userId = userId oldUser
+                           , userPassword = newPw
+                           } 
+           >> return ()
+
+
+-- | Create new AuthUser object from data supplied from command line.
+--
+-- Has to be monadic due to 'setPassword' usage (hashing requires IO)
+-- (in case of non-'Nothing' password).
+buildAuthUser :: String             -- ^ User
+              -> Maybe String       -- ^ Password
+              -> [String]           -- ^ Roles
+              -> [(String, String)] -- ^ List of key-value pairs of
+                                    -- user metadata
+              -> IO AuthUser
+buildAuthUser l p rs mt =
     let
         login = T.pack l
-        pass = BU.fromString p
+        pass = BU.fromString <$> p
         roles = map (Role . BU.fromString) $ rs
         meta = M.fromList $
                map (\(k, v) -> (T.pack k, A.String $ T.pack v)) mt
         au' = defAuthUser{ userLogin = login
                          , userRoles = roles
-                         , userMeta = meta}
+                         , userMeta = meta
+                         }
     in
       do
-        au <- setPassword au' pass
-        save amgr au
+        case pass of
+          Nothing -> return au'
+          Just pw -> setPassword au' pw
 
 
 -- | Get user from backend by login and apply 'AuthUserAction' to it.
@@ -73,8 +101,9 @@ mgrOldUser amgr l f =
 
 
 -- | Possible modes of operation.
-data OpMode = Create | Read | Delete
+data OpMode = Create | Read | Modify | Delete
               deriving (Show, Data, Typeable)
+
 
 -- | Default instance for CmdArg.
 instance Default OpMode where
@@ -98,12 +127,14 @@ main :: IO ()
 main =
     let
         sample = Options
-                 { mode = enum [Read &= help "Read existing user"
-                               , Create &= help "Create new user"
-                               , Delete &= help "Delete user"]
-                 , user = def &= help "User login"
+                 { mode =
+                   enum [ Read &= help "Read existing user"
+                        , Create &= help "Create new user"
+                        , Modify &= help "Modify password or replace roles and meta of existing user"
+                        , Delete &= help "Delete user"] &= groupname "Mode"
+                 , user = def &= help "User login" &= groupname "Other flags"
                  , password = def
-                 , role = def &= name "r"
+                 , role = def &= name "o"
                    &= help "User role. May be specified multiple times"
                  , key = def &= name "k"
                    &= help "User meta key. Must be followed by value option"
@@ -120,10 +151,13 @@ main =
       amgr <- mkJsonAuthMgr json
       case (mode, user, password) of
         (_, Nothing, _) -> ioError $ userError "No user selected"
-        (Read, Just l, _) -> mgrOldUser amgr l
-                             (\_ au -> LB.putStr $ encodePretty au)
+        (Read, Just l, _) -> mgrOldUser amgr l readAction
         (Delete, Just l, _) -> mgrOldUser amgr l destroy
-        (Create, Just l, Just pw) -> mgrNewUser amgr (l, pw, role, meta)
-                                     >> return ()
-                                  where meta = zip key value
+        -- Require password for new users
         (Create, _, Nothing) -> ioError $ userError "No password set"
+        (_, Just l, pw) ->
+            do
+                au <- buildAuthUser l pw role (zip key value)
+                case mode of
+                  Modify -> mgrOldUser amgr l (makeUpdateAction au) >> return ()
+                  Create -> save amgr au >> return ()
