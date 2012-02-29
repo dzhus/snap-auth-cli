@@ -147,6 +147,10 @@ data Options = Options
     }
     deriving (Show, Data, Typeable)
 
+modifyHelp :: String
+modifyHelp = "Modify password or replace roles and meta of existing user. " ++
+             "If any of -p/-r/-k,-v flags is not set, previous value " ++
+             "of that flag is preserved for account"
 
 main :: IO ()
 main =
@@ -155,7 +159,7 @@ main =
                  { mode =
                    enum [ Read &= help "Read existing user"
                         , Create &= help "Create new user"
-                        , Modify &= help "Modify password or replace roles and meta of existing user"
+                        , Modify &= help modifyHelp
                         , Delete &= help "Delete user"] &= groupname "Mode"
                  , user = def &= help "User login" &= groupname "Other flags"
                  , password = def
