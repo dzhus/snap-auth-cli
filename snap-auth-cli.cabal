@@ -1,7 +1,14 @@
 name:                snap-auth-cli
 version:             0.1.0.0
 synopsis:            Command-line tool to manage Snap AuthManager database
--- description:         
+
+description:         This utility provides command-line interface to user
+                     database of standard authentication system for
+                     the Snap web framework. You can create/read/
+                     update/delete users, set passwords, roles and
+                     meta information. Currently only JsonFile backend
+                     is supported.
+
 homepage:            https://github.com/dzhus/snap-auth-cli
 license:             BSD3
 license-file:        LICENSE
@@ -11,6 +18,10 @@ category:            Web
 build-type:          Simple
 cabal-version:       >=1.8
 tested-with:         GHC == 7.4.1
+
+source-repository head
+  type:     git
+  location: git://github.com/dzhus/snap-auth-cli.git
 
 executable snap-auth-cli
   hs-source-dirs: src
