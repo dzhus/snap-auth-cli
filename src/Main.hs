@@ -19,7 +19,6 @@ import Data.Aeson.Encode.Pretty
 import qualified Data.Aeson.Types as A
 
 import qualified Data.Text as T (pack)
-import qualified Data.ByteString as B (ByteString)
 import qualified Data.ByteString.Lazy as LB (putStr)
 import qualified Data.ByteString.UTF8 as BU (fromString)
 import qualified Data.HashMap.Lazy as M
@@ -28,8 +27,6 @@ import System.Console.CmdArgs.Implicit
 
 import Snap.Snaplet.Auth
 import Snap.Snaplet.Auth.Backends.JsonFile
-
-import Web.ClientSession
 
 
 -- | Rank-2 type for action applicable to AuthManager and AuthUser.
@@ -147,10 +144,12 @@ data Options = Options
     }
     deriving (Show, Data, Typeable)
 
+
 modifyHelp :: String
 modifyHelp = "Modify password or replace roles and meta of existing user. " ++
              "If any of -p/-r/-k,-v flags is not set, previous value " ++
              "of that flag is preserved for account"
+
 
 main :: IO ()
 main =
