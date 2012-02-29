@@ -63,8 +63,8 @@ instance (Eq a, PossiblyNull a) => Monoid (NullMonoid a) where
 
 
 -- | Make 'AuthUserAction' which will replace user with the supplied
--- one. In case new user has 'Nothing' in password, old password will be
--- used.
+-- one. In case new user record does not set new password, roles or
+-- meta, preserve old values.
 makeUpdateAction :: AuthUser -> AuthUserAction
 makeUpdateAction newUser =
     \amgr oldUser ->
