@@ -33,6 +33,7 @@ import Snap.Snaplet.Auth.Backends.JsonFile
 type AuthUserAction = IAuthBackend r => r -> AuthUser -> IO ()
 
 
+-- | Action for --read mode: show pretty JSON auth user entry.
 readAction :: AuthUserAction
 readAction _ au = LB.putStr $ encodePretty au
 
@@ -134,13 +135,13 @@ instance Default OpMode where
 
 -- | Holds all options passed from command-line.
 data Options = Options
-    { mode :: OpMode
-    , user :: Maybe String
+    { mode     :: OpMode
+    , user     :: Maybe String
     , password :: Maybe String
-    , json :: String
-    , role :: [String]
-    , key :: [String]
-    , value :: [String]
+    , json     :: String
+    , role     :: [String]
+    , key      :: [String]
+    , value    :: [String]
     }
     deriving (Show, Data, Typeable)
 
