@@ -52,6 +52,9 @@ instance PossiblyNull (M.HashMap k v) where
     null = M.empty
 
 -- | Monoid under choosing non-null container.
+--
+-- We can map empty containers to Nothing and use standard monoid for
+-- Nothing as well.
 newtype NullMonoid a = NullMonoid { getContainer :: a }
 
 instance (Eq a, PossiblyNull a) => Monoid (NullMonoid a) where
