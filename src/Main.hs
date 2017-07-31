@@ -2,18 +2,9 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RecordWildCards #-}
 
-{-|
-
-Main module.
-
--}
-
 module Main
 
 where
-
-import Data.Functor
-import Data.Monoid
 
 import Data.Aeson.Encode.Pretty
 import qualified Data.Aeson.Types as A
@@ -30,7 +21,7 @@ import Snap.Snaplet.Auth.Backends.JsonFile
 
 
 -- | Rank-2 type for action applicable to AuthManager and AuthUser.
-type AuthUserAction = IAuthBackend r => r -> AuthUser -> IO ()
+type AuthUserAction = forall r. IAuthBackend r => r -> AuthUser -> IO ()
 
 
 -- | Action for --read mode: show pretty JSON auth user entry.
@@ -193,3 +184,4 @@ main =
                 case mode of
                   Modify -> mgrOldUser amgr l (makeUpdateAction au) >> return ()
                   Create -> save amgr au >> return ()
+                  _      -> error "Incompatible mode and options"
