@@ -1,5 +1,6 @@
 # snap-auth-cli: CLI tool to manage Snap auth database
 
+[![Travis CI build status](https://travis-ci.org/dzhus/snap-auth-cli.svg)](https://travis-ci.org/dzhus/snap-auth-cli)
 [![Hackage](https://img.shields.io/hackage/v/snap-auth-cli.svg)](https://hackage.haskell.org/package/snap-auth-cli)
 [![Hackage deps](https://img.shields.io/hackage-deps/v/snap-auth-cli.svg)](http://packdeps.haskellers.com/feed?needle=snap-auth-cli)
 
