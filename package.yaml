@@ -18,16 +18,16 @@ category: Web, Snap
 tested-with: GHC==7.6.1
 
 dependencies:
-- aeson ==0.6.*
-- aeson-pretty ==0.6.*
-- base >=4 && <5
-- bytestring >=0.9.1 && <0.11
-- clientsession ==0.8.*
-- cmdargs ==0.10.*
-- snap ==0.11.*
-- text ==0.11.*
-- unordered-containers >=0.1.4 && <0.3
-- utf8-string ==0.3.*
+- aeson
+- aeson-pretty
+- base <5
+- bytestring
+- clientsession
+- cmdargs
+- snap
+- text
+- unordered-containers
+- utf8-string
 
 executables:
   snap-auth-cli:
