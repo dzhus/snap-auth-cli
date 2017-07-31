@@ -1,5 +1,8 @@
 # snap-auth-cli: CLI tool to manage Snap auth database
 
+[![Hackage](https://img.shields.io/hackage/v/snap-auth-cli.svg)](https://hackage.haskell.org/package/snap-auth-cli)
+[![Hackage deps](https://img.shields.io/hackage-deps/v/snap-auth-cli.svg)](http://packdeps.haskellers.com/feed?needle=snap-auth-cli)
+
 This tool provides command-line interface to Snap AuthManager to
 create, view and delete users in database. Currently only JsonFile
 backend is supported.
