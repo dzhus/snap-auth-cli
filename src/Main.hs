@@ -6,6 +6,7 @@ module Main
 
 where
 
+import Control.Monad
 import Data.Aeson.Encode.Pretty
 import qualified Data.Aeson.Types as A
 
@@ -58,18 +59,17 @@ instance (Eq a, PossiblyNull a) => Monoid (NullMonoid a) where
 -- one. In case new user record does not set new password, roles or
 -- meta, preserve old values.
 makeUpdateAction :: AuthUser -> AuthUserAction
-makeUpdateAction newUser =
-    \amgr oldUser ->
+makeUpdateAction newUser amgr oldUser =
         let
             pick how = getContainer $ mconcat $
                        map (NullMonoid . how) [newUser, oldUser]
         in
+          void $
           save amgr newUser{ userId = userId oldUser
                            , userPassword = pick userPassword
                            , userRoles = pick userRoles
                            , userMeta = pick userMeta
                            }
-           >> return ()
 
 
 -- | Create new AuthUser object from data supplied from command line.
@@ -86,7 +86,7 @@ buildAuthUser l p rs mt =
     let
         login = T.pack l
         pass = BU.fromString <$> p
-        roles = map (Role . BU.fromString) $ rs
+        roles = map (Role . BU.fromString) rs
         meta = M.fromList $
                map (\(k, v) -> (T.pack k, A.String $ T.pack v)) mt
         au' = defAuthUser{ userLogin = login
@@ -94,7 +94,6 @@ buildAuthUser l p rs mt =
                          , userMeta = meta
                          }
     in
-      do
         case pass of
           Nothing -> return au'
           Just pw -> setPassword au' pw
@@ -170,7 +169,7 @@ main =
                  &= program "snap-auth-cli"
     in do
       -- RecordWildCards
-      Options{..} <- cmdArgs $ sample
+      Options{..} <- cmdArgs sample
       amgr <- mkJsonAuthMgr json
       case (mode, user, password) of
         (_, Nothing, _) -> ioError $ userError "No user selected"
@@ -182,6 +181,6 @@ main =
             do
                 au <- buildAuthUser l pw role (zip key value)
                 case mode of
-                  Modify -> mgrOldUser amgr l (makeUpdateAction au) >> return ()
-                  Create -> save amgr au >> return ()
+                  Modify -> void $ mgrOldUser amgr l (makeUpdateAction au)
+                  Create -> void $ save amgr au
                   _      -> error "Incompatible mode and options"
