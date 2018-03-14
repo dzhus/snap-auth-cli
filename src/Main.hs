@@ -179,11 +179,11 @@ main =
                  , value = def &= name "v"
                    &= help "User meta value."
                  , backend =
-                     enum [ Json &= help "Use Json backend"
-                          , Sqlite &= help "Use Sqlite backend"
+                     enum [ Json &= help "Use the Json file backend"
+                          , Sqlite &= help "Use the Sqlite file backend"
                           ] &= groupname "User database backend"
                  , file = "users.json" &= typFile
-                   &= help "Path to backend file"
+                   &= help "Path to database file"
                  }
                  &= program "snap-auth-cli"
     in do
