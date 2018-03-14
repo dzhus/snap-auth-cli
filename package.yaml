@@ -25,6 +25,8 @@ dependencies:
 - clientsession
 - cmdargs
 - snap
+- snaplet-sqlite-simple
+- sqlite-simple
 - text
 - unordered-containers
 - utf8-string
