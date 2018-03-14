@@ -1,6 +1,7 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main
 
@@ -19,6 +20,11 @@ import System.Console.CmdArgs.Implicit
 
 import Snap.Snaplet.Auth
 import Snap.Snaplet.Auth.Backends.JsonFile
+import Snap.Snaplet.Auth.Backends.SqliteSimple
+
+import Database.SQLite.Simple
+import Control.Concurrent.MVar
+import Control.Exception (finally)
 
 
 -- | Rank-2 type for action applicable to AuthManager and AuthUser.
@@ -121,9 +127,18 @@ data OpMode = Create | Read | Modify | Delete
               deriving (Show, Data, Typeable)
 
 
+-- | user backend 
+data Backend = Json | Sqlite
+              deriving (Show, Data, Typeable)
+
+
 -- | Default instance for CmdArg.
 instance Default OpMode where
     def = Read
+
+instance Default Backend where
+    def = Json
+
 
 
 -- | Holds all options passed from command-line.
@@ -131,7 +146,8 @@ data Options = Options
     { mode     :: OpMode
     , user     :: Maybe String
     , password :: Maybe String
-    , json     :: String
+    , backend  :: Backend
+    , file     :: FilePath
     , role     :: [String]
     , key      :: [String]
     , value    :: [String]
@@ -162,16 +178,31 @@ main =
                    &= help "User meta key. Must be followed by value option"
                  , value = def &= name "v"
                    &= help "User meta value."
-                 , json = "users.json"
-                   &= typFile
-                   &= help "Path to JsonFile database"
+                 , backend =
+                     enum [ Json &= help "Use Json backend"
+                          , Sqlite &= help "Use Sqlite backend"
+                          ] &= groupname "User database backend"
+                 , file = "users.json" &= typFile
+                   &= help "Path to backend file"
                  }
                  &= program "snap-auth-cli"
     in do
       -- RecordWildCards
-      Options{..} <- cmdArgs sample
-      amgr <- mkJsonAuthMgr json
-      case (mode, user, password) of
+      opts@Options{..} <- cmdArgs sample
+      case backend of
+        Json ->  do
+          amgr <- mkJsonAuthMgr file
+          withAuthMgr opts amgr
+        Sqlite -> do
+          conn <- open file
+          mv <- newMVar conn
+          let amgr = mkSqliteAuthMgr "snap_auth_user" mv
+          withAuthMgr opts amgr `finally` close conn
+
+
+withAuthMgr :: IAuthBackend r => Options -> r -> IO ()
+withAuthMgr Options{..} amgr = 
+  case (mode, user, password) of
         (_, Nothing, _) -> ioError $ userError "No user selected"
         (Read, Just l, _) -> mgrOldUser amgr l readAction
         (Delete, Just l, _) -> mgrOldUser amgr l destroy
