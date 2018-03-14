@@ -6,16 +6,14 @@
 
 This tool provides command-line interface to
 Haskell [Snap][snap] [AuthManager][snap-auth] to create, view and
-delete users in database. Currently only JsonFile backend is
+delete users in database. Currently the Json and Sqlite file backends are
 supported.
 
 Passwords for new users are provided in plain text.
 
 By default the database resides in current directory in `users.json`
-file.
-
-Note that if database file doesn't exist, it will be created from
-scratch. A different db may be specified using `-j` flag.
+file.  A different db may be specified using `-f` flag.
+To specify a Sqlite database use `-s -f filename`.
 
 # How to use
 
@@ -67,9 +65,21 @@ is the default mode):
 }
 ```
 
-Work on a different database:
+To specify a different database file (Json by default):
 
-    $ snap-auth-cli -j back.json --create -u MimsyBorogove -p 0utgr@b3d
+    $ snap-auth-cli -f back.json --create -u MimsyBorogove -p 0utgr@b3d
+
+Note that if database file doesn't exist, it will be created from
+scratch.
+
+To specify a Sqlite database:
+
+    $ snap-auth-cli -s -f db.sqlite --read -u AlexP
+
+Unlike the Json backend, the database file with the correct schema
+must aleady exist; this should be automaticallly initialized by
+when you first run the Snap application.
+
 
 Existing users can be modified using the `-m` option. User is
 selected by login. Any of `-p`, `-o` or `-k/-v` flags may be
@@ -88,8 +98,8 @@ Replace user meta:
 
     $ snap-auth-cli -m -u BG -k tel -v 2-12-85-06
 
-The tool provides interface to delete users, but JsonFile backend
-in Snap doesn't support the operation yet.
+The tool provides interface to delete users;  the Sqlite backend supports
+this operation but the JsonFile backend does not.
 
 [snap]: http://snapframework.com/
 [snap-auth]: http://hackage.haskell.org/package/snap/docs/Snap-Snaplet-Auth.html
