@@ -8,6 +8,7 @@ module Main
 where
 
 import Control.Monad
+import Data.Semigroup
 import Data.Aeson.Encode.Pretty
 import qualified Data.Aeson.Types as A
 
@@ -55,11 +56,13 @@ instance PossiblyNull (M.HashMap k v) where
 -- Nothing as well.
 newtype NullMonoid a = NullMonoid { getContainer :: a }
 
-instance (Eq a, PossiblyNull a) => Monoid (NullMonoid a) where
-    mempty = NullMonoid Main.null
-    (NullMonoid x) `mappend` (NullMonoid y) =
+instance (Eq a, PossiblyNull a) => Semigroup (NullMonoid a) where
+    (NullMonoid x) <> (NullMonoid y) =
         NullMonoid (if x == Main.null then y else x)
 
+instance (Eq a, PossiblyNull a) => Monoid (NullMonoid a) where
+    mempty = NullMonoid Main.null
+    mappend = (<>)
 
 -- | Make 'AuthUserAction' which will replace user with the supplied
 -- one. In case new user record does not set new password, roles or
