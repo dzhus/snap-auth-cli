@@ -1,5 +1,5 @@
 name:        snap-auth-cli
-version:     "0.1.0.3"
+version:     "0.2"
 synopsis:    Command-line tool to manage Snap AuthManager database
 
 description: This utility provides command-line interface to user
