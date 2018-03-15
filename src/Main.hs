@@ -130,7 +130,7 @@ data OpMode = Create | Read | Modify | Delete
               deriving (Show, Data, Typeable)
 
 
--- | user backend 
+-- | user backend
 data Backend = Json | Sqlite
               deriving (Show, Data, Typeable)
 
@@ -204,7 +204,7 @@ main =
 
 
 withAuthMgr :: IAuthBackend r => Options -> r -> IO ()
-withAuthMgr Options{..} amgr = 
+withAuthMgr Options{..} amgr =
   case (mode, user, password) of
         (_, Nothing, _) -> ioError $ userError "No user selected"
         (Read, Just l, _) -> mgrOldUser amgr l readAction
