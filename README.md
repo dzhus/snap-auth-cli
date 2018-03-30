@@ -4,18 +4,17 @@
 [![Hackage](https://img.shields.io/hackage/v/snap-auth-cli.svg?colorB=5e5184&style=flat)](https://hackage.haskell.org/package/snap-auth-cli)
 [![Hackage deps](https://img.shields.io/hackage-deps/v/snap-auth-cli.svg)](http://packdeps.haskellers.com/feed?needle=snap-auth-cli)
 
-This tool provides command-line interface to
-Haskell [Snap][snap] [AuthManager][snap-auth] to create, view and
-delete users in database. Currently the Json and Sqlite file backends are
+This tool provides a command-line interface to [Snap][] authentication
+database. JSON and SQLite file [AuthManager][snap-auth] backends are
 supported.
 
 Passwords for new users are provided in plain text.
 
-By default the database resides in current directory in `users.json`
-file.  A different db may be specified using `-f` flag.
-To specify a Sqlite database use `-s -f filename`.
+The default database location is `users.json` file in the current
+directory. A different DB may be specified using `-f` flag. To specify
+a SQLite database use `-s -f filename`.
 
-# How to use
+## How to use
 
 Type `snap-auth-cli --help` to get usage help.
 
